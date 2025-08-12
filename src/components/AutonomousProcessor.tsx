@@ -12,7 +12,10 @@ import {
   Zap,
   Eye,
   Search,
-  Database
+  Database,
+  MessageSquare,
+  Bot,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +36,17 @@ interface LiveInsight {
   confidence: number;
   impact: "high" | "medium" | "low";
   timestamp: Date;
+}
+
+interface ChatQuery {
+  id: string;
+  query: string;
+  response: string;
+  processingTime: number;
+  confidence: number;
+  sources: string[];
+  timestamp: Date;
+  status: "processing" | "completed";
 }
 
 export const AutonomousProcessor = () => {
@@ -90,6 +104,39 @@ export const AutonomousProcessor = () => {
     accuracyScore: 98.7
   });
 
+  const [chatQueries, setChatQueries] = useState<ChatQuery[]>([
+    {
+      id: "1",
+      query: "What are the GPA requirements for federal aid eligibility?",
+      response: "Students must maintain a minimum cumulative GPA of 2.0 for federal aid eligibility. SAP (Satisfactory Academic Progress) requires completion of at least 67% of attempted credit hours.",
+      processingTime: 1.2,
+      confidence: 96,
+      sources: ["Financial Aid Policy Manual 2024.pdf", "SAP Guidelines.docx"],
+      timestamp: new Date(Date.now() - 2 * 60 * 1000),
+      status: "completed"
+    },
+    {
+      id: "2", 
+      query: "How long does FAFSA processing typically take?",
+      response: "FAFSA applications are processed within 3-5 business days of submission. Complete applications with all required documentation are prioritized in our processing queue.",
+      processingTime: 0.8,
+      confidence: 94,
+      sources: ["FAFSA Processing Procedures.xlsx", "Timeline Guidelines.pdf"],
+      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+      status: "completed"
+    },
+    {
+      id: "3",
+      query: "What documents are required for verification?",
+      response: "",
+      processingTime: 0,
+      confidence: 0,
+      sources: [],
+      timestamp: new Date(),
+      status: "processing"
+    }
+  ]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setTasks(prev => prev.map(task => {
@@ -107,6 +154,46 @@ export const AutonomousProcessor = () => {
         }
         return task;
       }));
+
+      // Update chat queries
+      setChatQueries(prev => prev.map(query => {
+        if (query.status === "processing") {
+          // Simulate processing completion
+          return {
+            ...query,
+            response: "Required documents include: Tax transcripts, W-2 forms, bank statements, and verification worksheets. All documents must be submitted within 30 days of request.",
+            processingTime: Math.random() * 2 + 0.5,
+            confidence: Math.floor(Math.random() * 10 + 90),
+            sources: ["Verification Requirements.pdf", "Document Checklist.docx"],
+            status: "completed"
+          };
+        }
+        return query;
+      }));
+
+      // Add new chat queries occasionally
+      if (Math.random() > 0.92) {
+        const sampleQueries = [
+          "What is the maximum Pell Grant amount for this year?",
+          "How do I appeal a financial aid decision?", 
+          "What happens if I drop below full-time status?",
+          "Can I get aid for summer courses?",
+          "What are the requirements for work-study eligibility?"
+        ];
+        
+        const newQuery: ChatQuery = {
+          id: Date.now().toString(),
+          query: sampleQueries[Math.floor(Math.random() * sampleQueries.length)],
+          response: "",
+          processingTime: 0,
+          confidence: 0,
+          sources: [],
+          timestamp: new Date(),
+          status: "processing"
+        };
+        
+        setChatQueries(prev => [newQuery, ...prev.slice(0, 4)]);
+      }
 
       // Occasionally add new insights
       if (Math.random() > 0.95) {
@@ -221,7 +308,7 @@ export const AutonomousProcessor = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Live Processing Tasks */}
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-4">
@@ -365,7 +452,78 @@ export const AutonomousProcessor = () => {
             <Progress value={100} className="h-2" />
           </div>
         </div>
-      </Card>
+        </Card>
+
+        {/* Live Chat Stream */}
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MessageSquare className="w-5 h-5 text-enterprise" />
+            <h2 className="text-lg font-semibold">Live Query Stream</h2>
+          </div>
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {chatQueries.map((query) => (
+              <div key={query.id} className="space-y-3 animate-fade-in">
+                {/* User Query */}
+                <div className="flex gap-3 justify-end">
+                  <div className="max-w-[80%]">
+                    <Card className="p-3 bg-enterprise text-white">
+                      <p className="text-sm">{query.query}</p>
+                    </Card>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                {/* AI Response */}
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="max-w-[80%] space-y-2">
+                    {query.status === "processing" ? (
+                      <Card className="p-3 bg-card">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        </div>
+                      </Card>
+                    ) : (
+                      <>
+                        <Card className="p-3 bg-card">
+                          <p className="text-sm">{query.response}</p>
+                        </Card>
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <Badge variant="outline" className="text-xs bg-confidence-high/10 text-confidence-high border-0">
+                            {query.confidence}% confidence
+                          </Badge>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            {query.processingTime.toFixed(1)}s
+                          </div>
+                        </div>
+                        {query.sources.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium text-muted-foreground">Sources:</p>
+                            <div className="grid gap-1">
+                              {query.sources.map((source, idx) => (
+                                <div key={idx} className="flex items-center gap-2 text-xs">
+                                  <FileText className="w-3 h-3 text-enterprise" />
+                                  <span className="text-muted-foreground">{source}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
     </div>
   );
 };
