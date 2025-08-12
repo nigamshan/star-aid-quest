@@ -4,17 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MessageSquare, FileText, BarChart3, Settings, Menu } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
-import { ChatInterface } from "@/components/ChatInterface";
+import { AutonomousProcessor } from "@/components/AutonomousProcessor";
 import { DocumentPreview } from "@/components/DocumentPreview";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("autonomous");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const navigation = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "chat", label: "AI Assistant", icon: MessageSquare },
+    { id: "autonomous", label: "Live Processing", icon: MessageSquare },
     { id: "documents", label: "Documents", icon: FileText },
     { id: "settings", label: "Settings", icon: Settings },
   ];
@@ -89,8 +89,8 @@ const Index = () => {
             <Dashboard />
           </TabsContent>
           
-          <TabsContent value="chat" className="h-full m-0">
-            <ChatInterface />
+          <TabsContent value="autonomous" className="h-full m-0">
+            <AutonomousProcessor />
           </TabsContent>
           
           <TabsContent value="documents" className="h-full m-0">
